@@ -134,9 +134,9 @@ void loop() {
 }
 
 void setupPin() {
-  pinMode(cableIn1, INPUT);
-  pinMode(cableIn2, INPUT);
-  pinMode(cableIn3, INPUT);
+  pinMode(cableIn1, INPUT_PULLUP);
+  pinMode(cableIn2, INPUT_PULLUP);
+  pinMode(cableIn3, INPUT_PULLUP);
   pinMode(red1, OUTPUT);
   pinMode(green1, OUTPUT);
   pinMode(red2, OUTPUT);
@@ -167,14 +167,14 @@ void taskCable() {
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
     
-    if (digitalRead(cableIn1) == HIGH) {
-        param1["cable1"] = digitalRead(cableIn1);
+    if (digitalRead(cableIn1) == LOW) {
+        param1["cable1"] = true;
     }
-    if (digitalRead(cableIn2) == HIGH) {
-        param1["cable2"] = digitalRead(cableIn2);
+    if (digitalRead(cableIn2) == LOW) {
+        param1["cable2"] = true;
     }
-    if (digitalRead(cableIn3) == HIGH) {
-        param1["cable3"] = digitalRead(cableIn3);
+    if (digitalRead(cableIn3) == LOW) {
+        param1["cable3"] = true;
     }
     
     // JSON to String (serializion)
