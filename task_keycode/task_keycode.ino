@@ -9,25 +9,37 @@
 #include <WebSocketsClient.h>
 #include <SocketIOclient.h>
 
+#include <Keypad.h>
+
 #define USE_SERIAL Serial
 
 WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 
-const int button1 = 13;
-const int button2 = 15;
-const int button3 = 2;
-const int led1 = 12;
-const int led2 = 14;
-const int led3 = 27;
+const int ledValidation = 12;
+
+const byte ROWS = 4; 
+const byte COLS = 4; 
+
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+
+byte rowPins[ROWS] = {13, 15, 2, 0}; 
+byte colPins[COLS] = {4, 16, 17, 5}; 
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
 bool taskEnabled = true;
 
-const char* ssid_board = "SOCLE";
+const char* ssid_board = "MANIVELLE";
 const char* password_board = "12345678";
-const char* ssid = "SFR_45EF";
-const char* password = "d9byza2yhvc92dfebfi7";
-const char* host = "192.168.1.149";
+const char* ssid = "ldqtheone";
+const char* password = "chass6000";
+const char* host = "192.168.43.7";
 const int port = 3000;
 const char* path = "/socket.io/?EIO=4";
 
@@ -59,19 +71,17 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             }
 
             String eventName = doc[0];
-            if (eventName == "enableTaskSocle") {
+            if (eventName == "enableTaskKeycode") {
                 taskEnabled = true;
                 USE_SERIAL.printf("task enabled\n");
-            } else if (eventName == "disableTaskSocle") {
+            } else if (eventName == "disableTaskKeycode") {
                 taskEnabled = false;
                 initTask();
                 USE_SERIAL.printf("task disabled\n");
-            } else if (eventName == "taskCompletedSocle") {
+            } else if (eventName == "taskCompletedKeycode") {
                 taskEnabled = false;
+                digitalWrite(ledValidation, HIGH);
                 USE_SERIAL.printf("task disabled\n");
-            } else if (eventName == "taskLedSocle") {
-              String led = doc[1]["led"];
-              taskLed(led);
             }
          } 
             break;
@@ -125,26 +135,18 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
-  taskSocle();
-  delay(500);
+  taskKeycode();
 }
 
 void setupPin() {
-  pinMode(button1, INPUT_PULLUP);
-  pinMode(button2, INPUT_PULLUP);
-  pinMode(button3, INPUT_PULLUP);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-  pinMode(led3, OUTPUT);
+  pinMode(ledValidation, OUTPUT);
 }
 
 void initTask() {
-  digitalWrite(led1, LOW);
-  digitalWrite(led2, LOW);
-  digitalWrite(led3, LOW);
+  digitalWrite(ledValidation, LOW);  
 }
 
-void taskSocle() {
+void taskKeycode() {
   if(taskEnabled) {
     // creat JSON message for Socket.IO (event)
     DynamicJsonDocument doc(1024);
@@ -152,28 +154,15 @@ void taskSocle() {
 
     // add evnet name
     // Hint: socket.on('event_name', ....
-    array.add("taskSocle");
+    array.add("taskKeycode");
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
-    
-    if (digitalRead(button1) == LOW) {
-        param1["button1"] = true;
-        digitalWrite(led1, HIGH);
-    } else {
-      digitalWrite(led1, LOW);
-    }
-    if (digitalRead(button2) == LOW) {
-        param1["button2"] = true;
-        digitalWrite(led2, HIGH);
-    } else {
-        digitalWrite(led2, LOW);
-    }
-    if (digitalRead(button3) == LOW) {
-        param1["button3"] = true;
-        digitalWrite(led3, HIGH);
-    } else {
-        digitalWrite(led3, LOW);
+
+    char customKey = customKeypad.getKey();
+  
+    if (customKey){
+      Serial.println(customKey);
     }
     
     // JSON to String (serializion)
@@ -182,28 +171,5 @@ void taskSocle() {
 
     // Send event
     socketIO.sendEVENT(output);
-
-    // Print JSON for debugging
-    USE_SERIAL.println(output);
-  }
-}
-
-void taskLed(String led) {
-  if (led == "led1") {
-    digitalWrite(led1, HIGH);
-    digitalWrite(led2, LOW);
-    digitalWrite(led3, LOW);
-  } else if (led == "led2") {
-    digitalWrite(led1, LOW);
-    digitalWrite(led2, HIGH);
-    digitalWrite(led3, LOW);
-  } else if (led == "led3") {
-    digitalWrite(led1, LOW);
-    digitalWrite(led2, LOW);
-    digitalWrite(led3, HIGH);
-  } else {
-    digitalWrite(led1, LOW);
-    digitalWrite(led2, LOW);
-    digitalWrite(led3, LOW);
   }
 }

@@ -14,22 +14,31 @@
 WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 
-const int button1 = 13;
-const int button2 = 15;
-const int button3 = 2;
-const int led1 = 12;
-const int led2 = 14;
-const int led3 = 27;
+const int manivellePin = 12;
+const int manivelleDt = 14;
+const int manivelleClk = 27;
+
+const int ledValidation = 26;
+
+const int green = 33;
+const int red = 25;
+const int blue = 32;
 
 bool taskEnabled = true;
 
-const char* ssid_board = "SOCLE";
+const char* ssid_board = "MANIVELLE";
 const char* password_board = "12345678";
-const char* ssid = "SFR_45EF";
-const char* password = "d9byza2yhvc92dfebfi7";
-const char* host = "192.168.1.149";
+const char* ssid = "ldqtheone";
+const char* password = "chass6000";
+const char* host = "192.168.43.7";
 const int port = 3000;
 const char* path = "/socket.io/?EIO=4";
+
+// Initialisation des variables nécessaires
+int compteur = 0; 
+bool direction;
+int pinClkLast;  
+int pinClkActual;
 
 void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
     switch(type) {
@@ -59,17 +68,17 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             }
 
             String eventName = doc[0];
-            if (eventName == "enableTaskSocle") {
+            if (eventName == "enableTaskManivelle") {
                 taskEnabled = true;
                 USE_SERIAL.printf("task enabled\n");
-            } else if (eventName == "disableTaskSocle") {
+            } else if (eventName == "disableTaskManivelle") {
                 taskEnabled = false;
                 initTask();
                 USE_SERIAL.printf("task disabled\n");
-            } else if (eventName == "taskCompletedSocle") {
+            } else if (eventName == "taskCompletedManivelle") {
                 taskEnabled = false;
                 USE_SERIAL.printf("task disabled\n");
-            } else if (eventName == "taskLedSocle") {
+            } else if (eventName == "taskLedManivelle") {
               String led = doc[1]["led"];
               taskLed(led);
             }
@@ -125,26 +134,36 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
-  taskSocle();
-  delay(500);
+  taskManivelle();
 }
 
 void setupPin() {
-  pinMode(button1, INPUT_PULLUP);
-  pinMode(button2, INPUT_PULLUP);
-  pinMode(button3, INPUT_PULLUP);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-  pinMode(led3, OUTPUT);
+  pinMode(manivellePin, INPUT);
+  pinMode(manivelleClk, INPUT);
+  pinMode(manivelleDt, INPUT);
+
+  pinMode(ledValidation, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(red, OUTPUT);
+  pinMode(blue, OUTPUT);
 }
 
 void initTask() {
-  digitalWrite(led1, LOW);
-  digitalWrite(led2, LOW);
-  digitalWrite(led3, LOW);
+  digitalWrite(ledValidation, LOW);
+  digitalWrite(green, LOW);
+  digitalWrite(red, LOW);
+  digitalWrite(blue, LOW);
+
+  // ...et activation de leurs résistances de PULL-UP
+  digitalWrite(manivelleClk, true);
+  digitalWrite(manivelleDt, true);
+  digitalWrite(manivellePin, true);
+
+  // Lecture initiale de Pin_CLK
+  pinClkLast = digitalRead(manivelleClk);   
 }
 
-void taskSocle() {
+void taskManivelle() {
   if(taskEnabled) {
     // creat JSON message for Socket.IO (event)
     DynamicJsonDocument doc(1024);
@@ -152,29 +171,52 @@ void taskSocle() {
 
     // add evnet name
     // Hint: socket.on('event_name', ....
-    array.add("taskSocle");
+    array.add("taskManivelle");
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
     
-    if (digitalRead(button1) == LOW) {
-        param1["button1"] = true;
-        digitalWrite(led1, HIGH);
-    } else {
-      digitalWrite(led1, LOW);
-    }
-    if (digitalRead(button2) == LOW) {
-        param1["button2"] = true;
-        digitalWrite(led2, HIGH);
-    } else {
-        digitalWrite(led2, LOW);
-    }
-    if (digitalRead(button3) == LOW) {
-        param1["button3"] = true;
-        digitalWrite(led3, HIGH);
-    } else {
-        digitalWrite(led3, LOW);
-    }
+    // Lecture des statuts actuels
+    pinClkActual = digitalRead(manivelleClk);
+      
+    // Vérification de changement
+    if (pinClkActual != pinClkLast)
+    {       
+      if (digitalRead(manivelleDt) != pinClkActual) 
+      {  
+        // Pin_CLK a changé en premier
+        compteur ++;
+        direction = true;
+      } else { 
+        // Sinon Pin_DT achangé en premier
+        direction = false;
+        compteur--;
+      }
+
+      Serial.println("Rotation detectee: ");
+      Serial.print("Sens de rotation: ");
+      
+      if(direction)
+      {
+        Serial.println("dans le sens des aiguilles d'une montre");
+      } else {
+        Serial.println("dans le sens contraire des aiguilles d'une montre");
+      }
+      
+      Serial.print("Position actuelle: ");
+      Serial.println(compteur);
+      Serial.println("------------------------------");         
+    } 
+    
+    // Préparation de la prochaine exécution:
+    pinClkLast = pinClkActual;
+    
+    // fonction Reset remise à la position actuelle
+    // if (!digitalRead(manivellePin) && compteur!= 0)
+    // {
+    //   compteur = 0;
+    //   Serial.println("Position reset");
+    // }
     
     // JSON to String (serializion)
     String output;
@@ -182,28 +224,29 @@ void taskSocle() {
 
     // Send event
     socketIO.sendEVENT(output);
-
-    // Print JSON for debugging
-    USE_SERIAL.println(output);
   }
 }
 
 void taskLed(String led) {
-  if (led == "led1") {
-    digitalWrite(led1, HIGH);
-    digitalWrite(led2, LOW);
-    digitalWrite(led3, LOW);
-  } else if (led == "led2") {
-    digitalWrite(led1, LOW);
-    digitalWrite(led2, HIGH);
-    digitalWrite(led3, LOW);
-  } else if (led == "led3") {
-    digitalWrite(led1, LOW);
-    digitalWrite(led2, LOW);
-    digitalWrite(led3, HIGH);
+  if (led == "green") {
+    digitalWrite(green, HIGH);
+    digitalWrite(red, LOW);
+    digitalWrite(blue, LOW);
+    digitalWrite(ledValidation, LOW);
+  } else if (led == "red") {
+    digitalWrite(green, LOW);
+    digitalWrite(red, HIGH);
+    digitalWrite(blue, LOW);
+    digitalWrite(ledValidation, LOW);
+  } else if (led == "blue") {
+    digitalWrite(green, LOW);
+    digitalWrite(red, LOW);
+    digitalWrite(blue, HIGH);
+    digitalWrite(ledValidation, LOW);
   } else {
-    digitalWrite(led1, LOW);
-    digitalWrite(led2, LOW);
-    digitalWrite(led3, LOW);
+    digitalWrite(green, LOW);
+    digitalWrite(red, LOW);
+    digitalWrite(blue, LOW);
+    digitalWrite(ledValidation, HIGH);
   }
 }
