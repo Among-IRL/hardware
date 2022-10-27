@@ -22,7 +22,12 @@ const int led1 = 12;
 const int led2 = 14;
 const int led3 = 27;
 const int led4 = 26;
-bool taskEnabled = true;
+String ledRobot = "";
+bool taskEnabled = false;
+bool send1 = true;
+bool send2 = true;
+bool send3 = true;
+bool send4 = true;
 const char* ssid_board = "SIMON";
 const char* password_board = "12345678";
 const char* ssid = "SFR_45EF";
@@ -69,10 +74,10 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskCompletedSimon") {
                 taskEnabled = false;
+                initTask();
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskLedSimon") {
-              String led = doc[1]["led"];
-              taskLed(led);
+                ledRobot = doc[1]["led"].as<String>();
             }
          } 
             break;
@@ -126,8 +131,10 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
-  taskSimon();
-  delay(500);
+  if(taskEnabled) {    
+      taskLed(ledRobot);
+      taskSimon();
+   }
 }
 
 void setupPin() {
@@ -142,63 +149,94 @@ void setupPin() {
 }
 
 void initTask() {
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, HIGH);
+  digitalWrite(led4, HIGH);
+  delay(500);
   digitalWrite(led1, LOW);
   digitalWrite(led2, LOW);
   digitalWrite(led3, LOW);
   digitalWrite(led4, LOW);
+  delay(500);
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, HIGH);
+  digitalWrite(led4, HIGH);
+  delay(500);
+  digitalWrite(led1, LOW);
+  digitalWrite(led2, LOW);
+  digitalWrite(led3, LOW);
+  digitalWrite(led4, LOW);
+  send1 = true;
+  send2 = true;
+  send3 = true;
+  send4 = true;
 }
 
 void taskSimon() {
-  if(taskEnabled) {
-    // creat JSON message for Socket.IO (event)
-    DynamicJsonDocument doc(1024);
-    JsonArray array = doc.to<JsonArray>();
 
-    // add evnet name
-    // Hint: socket.on('event_name', ....
-    array.add("taskSimon");
+  // creat JSON message for Socket.IO (event)
+  DynamicJsonDocument doc(1024);
+  JsonArray array = doc.to<JsonArray>();
 
-    // add payload (parameters) for the event
-    JsonObject param1 = array.createNestedObject();
-    
+  // add evnet name
+  // Hint: socket.on('event_name', ....
+  array.add("taskSimon");
+
+  // add payload (parameters) for the event
+  JsonObject param1 = array.createNestedObject();
+  
+
     if (digitalRead(button1) == LOW) {
-        param1["button1"] = true;
-        digitalWrite(led1, HIGH);
+        Serial.println("Push led1");
+        param1["led"] = "led1";
+        if (send1) {
+          sendData(doc);       
+        }   
+        send1 = false; 
     } else {
-      digitalWrite(led1, LOW);
+      send1 = true;
     }
     if (digitalRead(button2) == LOW) {
-        param1["button2"] = true;
-        digitalWrite(led2, HIGH);
+        Serial.println("Push led2");
+        param1["led"] = "led2";
+        if (send2) {
+          sendData(doc);       
+        }   
+        send2 = false; 
     } else {
-        digitalWrite(led2, LOW);
+        send2 = true;
     }
     if (digitalRead(button3) == LOW) {
-        param1["button3"] = true;
-        digitalWrite(led3, HIGH);
+        Serial.println("Push led3");
+        param1["led"] = "led3";
+        if (send3) {
+          sendData(doc);       
+        }   
+        send3 = false; 
     } else {
-        digitalWrite(led3, LOW);
+        send3 = true;
     }
       if (digitalRead(button4) == LOW) {
-        param1["button4"] = true;
-        digitalWrite(led4, HIGH);
+        Serial.println("Push led4");
+        param1["led"] = "led4";
+        if (send4) {
+          sendData(doc);       
+        }   
+        send4 = false; 
     } else {
-        digitalWrite(led4, LOW);
+        send4 = true;
     }
-    
+
     // JSON to String (serializion)
-    String output;
-    serializeJson(doc, output);
 
-    // Send event
-    socketIO.sendEVENT(output);
+  
 
-    // Print JSON for debugging
-    USE_SERIAL.println(output);
-  }
 }
 
 void taskLed(String led) {
+  Serial.println(led);
   if (led == "led1") {
     digitalWrite(led1, HIGH);
     digitalWrite(led2, LOW);
@@ -225,4 +263,15 @@ void taskLed(String led) {
     digitalWrite(led3, LOW);
     digitalWrite(led4, LOW);
   }
+}
+
+void sendData(ArduinoJson6194_F1::DynamicJsonDocument doc) {
+    String output;
+    serializeJson(doc, output);
+    
+    // Send event
+    Serial.println("SEND");
+    socketIO.sendEVENT(output);
+    // Print JSON for debugging
+    USE_SERIAL.println(output);
 }
