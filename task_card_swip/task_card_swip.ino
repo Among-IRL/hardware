@@ -64,6 +64,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskCompletedTaskCardSwip") {
                 taskEnabled = false;
+                digitalWrite(led1, HIGH);
                 USE_SERIAL.printf("task disabled\n");
             }
          } 
@@ -144,26 +145,25 @@ void taskCardSwip() {
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
 
-     // JSON to String (serializion)
-    String output;
-    serializeJson(doc, output);
 
-    // Print JSON for debugging
-    USE_SERIAL.println(output);
 
     bool detectorVal = digitalRead(obstacleDetector); // Lecture de la valeur du signal
    
     if(detectorVal == HIGH) // Si un signal est détecté, la diode s'allume
     {
       USE_SERIAL.printf("Pas d'obstacle");
-      param1["isDetected"] = false;
       digitalWrite(led1, LOW);
     }
     else
     {
       param1["isDetected"] = true;
-      digitalWrite(led1, HIGH);
       USE_SERIAL.printf("Obstacle detecte");
+
+     // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
 
       // Send event
       socketIO.sendEVENT(output);
