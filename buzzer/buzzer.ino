@@ -18,11 +18,12 @@ const int buzzer = 12;
 
 const char* ssid_board = "BUZZER";
 const char* password_board = "12345678";
-const char* ssid = "ldqtheone";
-const char* password = "chass6000";
-const char* host = "192.168.43.7";
+const char* ssid = "SFR_45EF";
+const char* password = "d9byza2yhvc92dfebfi7";
+const char* host = "192.168.1.149";
 const int port = 3000;
 const char* path = "/socket.io/?EIO=4";
+bool send = true;
 
 void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
     switch(type) {
@@ -50,11 +51,6 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.println(error.c_str());
                 return;
             }
-
-            String eventName = doc[0];
-            if (eventName == "buzzer") {
-                USE_SERIAL.printf("BUZZER ENBALED\n");
-            }
          } 
             break;
         case sIOtype_ACK:
@@ -74,6 +70,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
 
 void setup() {
     setupPin();
+    send = true;
     USE_SERIAL.begin(115200);
     USE_SERIAL.setDebugOutput(true);
 
@@ -107,7 +104,6 @@ unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
   activeBuzzer();
-  delay(500);
 }
 
 void setupPin() {
@@ -131,16 +127,19 @@ void activeBuzzer() {
   if(buzzerVal == LOW) // Si un signal est détecté, la diode s'allume
   {
     param1["status"] = true;
-    USE_SERIAL.printf("REUNION...");
+    if (send) {
+      String output;
+      serializeJson(doc, output);
 
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+    }
     // JSON to String (serializion)
-    String output;
-    serializeJson(doc, output);
-
-    // Print JSON for debugging
-    USE_SERIAL.println(output);
-
-    // Send event
-    socketIO.sendEVENT(output);
+    send = false;
+  } else {
+    send = true;
   }
-}
+ }
