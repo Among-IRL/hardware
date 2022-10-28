@@ -33,9 +33,9 @@ byte colPins[COLS] = {4, 16, 17, 5};
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
-bool taskEnabled = true;
+bool taskEnabled = false;
 
-const char* ssid_board = "MANIVELLE";
+const char* ssid_board = "KEYCODE";
 const char* password_board = "12345678";
 const char* ssid = "ldqtheone";
 const char* password = "chass6000";
@@ -71,17 +71,17 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             }
 
             String eventName = doc[0];
-            if (eventName == "enableTaskKeycode") {
+            if (eventName == "enableTaskKeyCode") {
                 taskEnabled = true;
                 USE_SERIAL.printf("task enabled\n");
-            } else if (eventName == "disableTaskKeycode") {
+            } else if (eventName == "disableTaskKeyCode") {
                 taskEnabled = false;
                 initTask();
                 USE_SERIAL.printf("task disabled\n");
-            } else if (eventName == "taskCompletedKeycode") {
+            } else if (eventName == "taskCompletedTaskKeyCode") {
                 taskEnabled = false;
                 digitalWrite(ledValidation, HIGH);
-                USE_SERIAL.printf("task disabled\n");
+                USE_SERIAL.printf("task completed\n");
             }
          } 
             break;
@@ -154,22 +154,26 @@ void taskKeycode() {
 
     // add evnet name
     // Hint: socket.on('event_name', ....
-    array.add("taskKeycode");
+    array.add("taskKeyCode");
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
 
     char customKey = customKeypad.getKey();
-  
-    if (customKey){
-      Serial.println(customKey);
-    }
-    
-    // JSON to String (serializion)
-    String output;
-    serializeJson(doc, output);
 
-    // Send event
-    socketIO.sendEVENT(output);
+    if (customKey){
+      USE_SERIAL.println(customKey);
+
+      param1["keyPressed"] = customKey;
+
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+    }
   }
 }
