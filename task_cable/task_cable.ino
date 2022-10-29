@@ -17,13 +17,19 @@ SocketIOclient socketIO;
 const int cableIn1 = 13;
 const int cableIn2 = 15;
 const int cableIn3 = 2;
-const int red1 = 12;
-const int green1 = 14;
-const int red2 = 26;
-const int green2 = 25;
-const int red3 = 32;
-const int green3 = 35;
-bool taskEnabled = false;
+const int red10 = 12;
+const int green10 = 14;
+const int red20 = 27;
+const int green20 = 26;
+const int red30 = 25;
+const int green30 = 33;
+const int red11 = 32;
+const int green11 = 5;
+const int red21 = 0;
+const int green21 = 4;
+const int red31 = 16;
+const int green31 = 17;
+bool taskEnabled = true;
 const char* ssid_board = "CABLE";
 const char* password_board = "12345678";
 const char* ssid = "SFR_45EF";
@@ -137,21 +143,33 @@ void setupPin() {
   pinMode(cableIn1, INPUT_PULLUP);
   pinMode(cableIn2, INPUT_PULLUP);
   pinMode(cableIn3, INPUT_PULLUP);
-  pinMode(red1, OUTPUT);
-  pinMode(green1, OUTPUT);
-  pinMode(red2, OUTPUT);
-  pinMode(green2, OUTPUT);
-  pinMode(red3, OUTPUT);
-  pinMode(green3, OUTPUT);
+  pinMode(red10, OUTPUT);
+  pinMode(green10, OUTPUT);
+  pinMode(red20, OUTPUT);
+  pinMode(green20, OUTPUT);
+  pinMode(red30, OUTPUT);
+  pinMode(green30, OUTPUT);
+  pinMode(red11, OUTPUT);
+  pinMode(green11, OUTPUT);
+  pinMode(red21, OUTPUT);
+  pinMode(green21, OUTPUT);
+  pinMode(red31, OUTPUT);
+  pinMode(green31, OUTPUT);
 }
 
 void initTask() {
-  digitalWrite(red1, HIGH);
-  digitalWrite(green1, LOW);
-  digitalWrite(red2, HIGH);
-  digitalWrite(green2, LOW);
-  digitalWrite(red3, HIGH);
-  digitalWrite(green3, LOW);
+  digitalWrite(red10, HIGH);
+  digitalWrite(green10, HIGH);
+  digitalWrite(red20, HIGH);
+  digitalWrite(green20, HIGH);
+  digitalWrite(red30, HIGH);
+  digitalWrite(green30, HIGH);
+  digitalWrite(red11, HIGH);
+  digitalWrite(green11, HIGH);
+  digitalWrite(red21, HIGH);
+  digitalWrite(green21, HIGH);
+  digitalWrite(red31, HIGH);
+  digitalWrite(green31, HIGH);
 }
 
 void taskCable() {
@@ -169,12 +187,15 @@ void taskCable() {
     
     if (digitalRead(cableIn1) == LOW) {
         param1["cable1"] = true;
+        USE_SERIAL.println("Cable 1");
     }
     if (digitalRead(cableIn2) == LOW) {
         param1["cable2"] = true;
+        USE_SERIAL.println("Cable 2");
     }
     if (digitalRead(cableIn3) == LOW) {
         param1["cable3"] = true;
+        USE_SERIAL.println("Cable 3");
     }
     
     // JSON to String (serializion)
@@ -190,25 +211,25 @@ void taskCable() {
 }
 
 void taskLed(String led1, String led2, String led3) {
-  if (led1 == "green") {
-    digitalWrite(green1, HIGH);
-    digitalWrite(red1, LOW);
-  } else {
-    digitalWrite(red1, HIGH);
-    digitalWrite(green1, LOW);
-  }
-  if (led2 == "green") {
-    digitalWrite(green2, HIGH);
-    digitalWrite(red2, LOW);
-  } else {
-    digitalWrite(red2, HIGH);
-    digitalWrite(green2, LOW);
-  }
-  if (led3 == "green") {
-    digitalWrite(green3, HIGH);
-    digitalWrite(red3, LOW);
-  } else {
-    digitalWrite(red3, HIGH);
-    digitalWrite(green3, LOW);
-  }
+  // if (led1 == "green") {
+  //   digitalWrite(green1, HIGH);
+  //   digitalWrite(red1, LOW);
+  // } else {
+  //   digitalWrite(red1, HIGH);
+  //   digitalWrite(green1, LOW);
+  // }
+  // if (led2 == "green") {
+  //   digitalWrite(green2, HIGH);
+  //   digitalWrite(red2, LOW);
+  // } else {
+  //   digitalWrite(red2, HIGH);
+  //   digitalWrite(green2, LOW);
+  // }
+  // if (led3 == "green") {
+  //   digitalWrite(green3, HIGH);
+  //   digitalWrite(red3, LOW);
+  // } else {
+  //   digitalWrite(red3, HIGH);
+  //   digitalWrite(green3, LOW);
+  // }
 }

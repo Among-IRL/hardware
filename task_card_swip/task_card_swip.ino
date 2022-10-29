@@ -64,7 +64,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskCompletedTaskCardSwip") {
                 taskEnabled = false;
-                digitalWrite(led1, HIGH);
+                initTask();
                 USE_SERIAL.printf("task disabled\n");
             }
          } 
@@ -129,6 +129,16 @@ void setupPin() {
 }
 
 void initTask() {
+  digitalWrite(led1,HIGH);
+  delay(500);
+  digitalWrite(led1, LOW);
+  delay(500);
+   digitalWrite(led1,HIGH);
+  delay(500);
+  digitalWrite(led1, LOW);
+  delay(500);
+  digitalWrite(led1,HIGH);
+  delay(500);
   digitalWrite(led1, LOW);
 }
 

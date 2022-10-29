@@ -20,6 +20,7 @@ const int ledValidation = 12;
 
 const byte ROWS = 4; 
 const byte COLS = 4; 
+const int led = 12;
 
 char hexaKeys[ROWS][COLS] = {
   {'1', '2', '3', 'A'},
@@ -37,9 +38,9 @@ bool taskEnabled = false;
 
 const char* ssid_board = "KEYCODE";
 const char* password_board = "12345678";
-const char* ssid = "ldqtheone";
-const char* password = "chass6000";
-const char* host = "192.168.43.7";
+const char* ssid = "SFR_45EF";
+const char* password = "d9byza2yhvc92dfebfi7";
+const char* host = "192.168.1.149";
 const int port = 3000;
 const char* path = "/socket.io/?EIO=4";
 
@@ -143,7 +144,17 @@ void setupPin() {
 }
 
 void initTask() {
+  digitalWrite(ledValidation, HIGH); 
+  delay(500);
   digitalWrite(ledValidation, LOW);  
+  delay(500);
+  digitalWrite(ledValidation, HIGH); 
+  delay(500);
+  digitalWrite(ledValidation, LOW); 
+  delay(500);
+  digitalWrite(ledValidation, HIGH); 
+  delay(500);
+  digitalWrite(ledValidation, LOW); 
 }
 
 void taskKeycode() {
