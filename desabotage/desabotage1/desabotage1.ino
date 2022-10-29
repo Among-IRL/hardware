@@ -18,7 +18,7 @@ const int green = 14;
 const int red = 27;
 const int button = 12;
 
-bool taskEnabled = true;
+bool taskEnabled = false;
 
 const char* ssid_board = "DESABOTAGE1";
 const char* password_board = "12345678";
@@ -136,6 +136,18 @@ void setupPin() {
 }
 
 void initTask() {
+  digitalWrite(green, LOW);
+  digitalWrite(red, LOW);
+  delay(500);
+  digitalWrite(green, HIGH);
+  digitalWrite(red, LOW);
+  delay(500);
+  digitalWrite(green, LOW);
+  digitalWrite(red, HIGH);
+  delay(500);
+  digitalWrite(green, HIGH);
+  digitalWrite(red, HIGH);
+  delay(500);
   digitalWrite(green, LOW);
   digitalWrite(red, LOW);
 }

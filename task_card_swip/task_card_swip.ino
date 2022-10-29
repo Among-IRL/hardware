@@ -17,9 +17,10 @@ SocketIOclient socketIO;
 const int led1 = 12;
 const int obstacleDetector = 13;
 
-bool taskEnabled = true;
+bool taskEnabled = false;
+bool reset = false;
 
-const char* ssid_board = "CARDSWIP";
+const char* ssid_board = "CARDSWIPE";
 const char* password_board = "12345678";
 const char* ssid = "SFR_45EF";
 const char* password = "d9byza2yhvc92dfebfi7";
@@ -34,7 +35,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             break;
         case sIOtype_CONNECT:
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-
+            reset = true;
             // join default namespace (no auto join in Socket.IO V3)
             socketIO.send(sIOtype_CONNECT, "/");
             break;
@@ -46,7 +47,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if(id) {
               payload = (uint8_t *)sptr;
             }
-            DynamicJsonDocument doc(1024);           
+            DynamicJsonDocument doc(2048);           
             DeserializationError error = deserializeJson(doc, payload, length);
             if(error) {
                 USE_SERIAL.print(F("deserializeJson() failed: "));
@@ -119,6 +120,7 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
+  checkConnection();
   taskCardSwip();
   delay(500);
 }
@@ -142,6 +144,30 @@ void initTask() {
   digitalWrite(led1, LOW);
 }
 
+void checkConnection() {
+      if (reset) {
+      DynamicJsonDocument doc(1024);
+      JsonArray array = doc.to<JsonArray>();
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("connectEsp");
+
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      param1["module"] = "CARDSWIPE";
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+      reset = false;
+    }
+}
+
 void taskCardSwip() {
   if(taskEnabled) {
     // creat JSON message for Socket.IO (event)
@@ -161,13 +187,13 @@ void taskCardSwip() {
    
     if(detectorVal == HIGH) // Si un signal est détecté, la diode s'allume
     {
-      USE_SERIAL.printf("Pas d'obstacle");
+      USE_SERIAL.println("Pas d'obstacle");
       digitalWrite(led1, LOW);
     }
     else
     {
       param1["isDetected"] = true;
-      USE_SERIAL.printf("Obstacle detecte");
+      USE_SERIAL.println("Obstacle detecte");
 
      // JSON to String (serializion)
       String output;

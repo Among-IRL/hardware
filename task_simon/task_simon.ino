@@ -24,6 +24,7 @@ const int led3 = 27;
 const int led4 = 26;
 String ledRobot = "";
 bool taskEnabled = false;
+bool reset = false;
 bool send1 = true;
 bool send2 = true;
 bool send3 = true;
@@ -43,7 +44,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             break;
         case sIOtype_CONNECT:
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-
+            reset = true;
             // join default namespace (no auto join in Socket.IO V3)
             socketIO.send(sIOtype_CONNECT, "/");
             break;
@@ -133,6 +134,7 @@ void loop() {
   socketIO.loop();
   if(taskEnabled) {    
       taskLed(ledRobot);
+      checkConnection();
       taskSimon();
    }
 }
@@ -263,6 +265,30 @@ void taskLed(String led) {
     digitalWrite(led3, LOW);
     digitalWrite(led4, LOW);
   }
+}
+
+void checkConnection() {
+      if (reset) {
+      DynamicJsonDocument doc(1024);
+      JsonArray array = doc.to<JsonArray>();
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("connectEsp");
+
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      param1["module"] = "SIMON";
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+      reset = false;
+    }
 }
 
 void sendData(ArduinoJson6194_F1::DynamicJsonDocument doc) {

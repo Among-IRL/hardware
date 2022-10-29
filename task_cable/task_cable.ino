@@ -29,7 +29,8 @@ const int red21 = 0;
 const int green21 = 4;
 const int red31 = 16;
 const int green31 = 17;
-bool taskEnabled = true;
+bool taskEnabled = false;
+bool reset = false;
 const char* ssid_board = "CABLE";
 const char* password_board = "12345678";
 const char* ssid = "SFR_45EF";
@@ -45,7 +46,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             break;
         case sIOtype_CONNECT:
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-
+            reset = true;
             // join default namespace (no auto join in Socket.IO V3)
             socketIO.send(sIOtype_CONNECT, "/");
             break;
@@ -78,10 +79,13 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 taskEnabled = false;
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskValidCable") {
-              String led1 = doc[1]["led1"];
-              String led2 = doc[1]["led2"];
-              String led3 = doc[1]["led3"];
-              taskLed(led1, led2, led3);
+              String led10 = doc[1]["led10"];
+              String led11 = doc[1]["led11"];
+              String led20 = doc[1]["led20"];
+              String led21 = doc[1]["led21"];
+              String led30 = doc[1]["led30"];
+              String led31 = doc[1]["led31"];
+              taskLed(led10, led11, led20, led21, led30, led31);
             }
          } 
             break;
@@ -135,6 +139,7 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
+  checkConnection();
   taskCable();
   delay(500);
 }
@@ -161,15 +166,93 @@ void initTask() {
   digitalWrite(red10, HIGH);
   digitalWrite(green10, HIGH);
   digitalWrite(red20, HIGH);
-  digitalWrite(green20, HIGH);
-  digitalWrite(red30, HIGH);
+  digitalWrite(green20, LOW);
+  digitalWrite(red30, LOW);
   digitalWrite(green30, HIGH);
   digitalWrite(red11, HIGH);
   digitalWrite(green11, HIGH);
   digitalWrite(red21, HIGH);
+  digitalWrite(green21, LOW);
+  digitalWrite(red31, LOW);
+  digitalWrite(green31, HIGH);
+  delay(500);
+  digitalWrite(red10, HIGH);
+  digitalWrite(green10, LOW);
+  digitalWrite(red20, LOW);
+  digitalWrite(green20, HIGH);
+  digitalWrite(red30, HIGH);
+  digitalWrite(green30, HIGH);
+  digitalWrite(red11, HIGH);
+  digitalWrite(green11, LOW);
+  digitalWrite(red21, LOW);
   digitalWrite(green21, HIGH);
   digitalWrite(red31, HIGH);
   digitalWrite(green31, HIGH);
+  delay(500);
+  digitalWrite(red10, LOW);
+  digitalWrite(green10, HIGH);
+  digitalWrite(red20, HIGH);
+  digitalWrite(green20, HIGH);
+  digitalWrite(red30, HIGH);
+  digitalWrite(green30, LOW);
+  digitalWrite(red11, LOW);
+  digitalWrite(green11, HIGH);
+  digitalWrite(red21, HIGH);
+  digitalWrite(green21, HIGH);
+  digitalWrite(red31, HIGH);
+  digitalWrite(green31, LOW);
+  delay(500);
+  digitalWrite(red10, HIGH);
+  digitalWrite(green10, HIGH);
+  digitalWrite(red20, HIGH);
+  digitalWrite(green20, LOW);
+  digitalWrite(red30, LOW);
+  digitalWrite(green30, HIGH);
+  digitalWrite(red11, HIGH);
+  digitalWrite(green11, HIGH);
+  digitalWrite(red21, HIGH);
+  digitalWrite(green21, LOW);
+  digitalWrite(red31, LOW);
+  digitalWrite(green31, HIGH);
+  delay(500);
+  digitalWrite(red10, HIGH);
+  digitalWrite(green10, LOW);
+  digitalWrite(red20, LOW);
+  digitalWrite(green20, HIGH);
+  digitalWrite(red30, HIGH);
+  digitalWrite(green30, HIGH);
+  digitalWrite(red11, HIGH);
+  digitalWrite(green11, LOW);
+  digitalWrite(red21, LOW);
+  digitalWrite(green21, HIGH);
+  digitalWrite(red31, HIGH);
+  digitalWrite(green31, HIGH);
+  delay(500);
+  digitalWrite(red10, LOW);
+  digitalWrite(green10, HIGH);
+  digitalWrite(red20, HIGH);
+  digitalWrite(green20, HIGH);
+  digitalWrite(red30, HIGH);
+  digitalWrite(green30, LOW);
+  digitalWrite(red11, LOW);
+  digitalWrite(green11, HIGH);
+  digitalWrite(red21, HIGH);
+  digitalWrite(green21, HIGH);
+  digitalWrite(red31, HIGH);
+  digitalWrite(green31, LOW);
+  delay(500);
+  digitalWrite(red10, LOW);
+  digitalWrite(green10, LOW);
+  digitalWrite(red20, LOW);
+  digitalWrite(green20, LOW);
+  digitalWrite(red30, LOW);
+  digitalWrite(green30, LOW);
+  digitalWrite(red11, LOW);
+  digitalWrite(green11, LOW);
+  digitalWrite(red21, LOW);
+  digitalWrite(green21, LOW);
+  digitalWrite(red31, LOW);
+  digitalWrite(green31, LOW);
 }
 
 void taskCable() {
@@ -210,26 +293,112 @@ void taskCable() {
   }
 }
 
-void taskLed(String led1, String led2, String led3) {
-  // if (led1 == "green") {
-  //   digitalWrite(green1, HIGH);
-  //   digitalWrite(red1, LOW);
-  // } else {
-  //   digitalWrite(red1, HIGH);
-  //   digitalWrite(green1, LOW);
-  // }
-  // if (led2 == "green") {
-  //   digitalWrite(green2, HIGH);
-  //   digitalWrite(red2, LOW);
-  // } else {
-  //   digitalWrite(red2, HIGH);
-  //   digitalWrite(green2, LOW);
-  // }
-  // if (led3 == "green") {
-  //   digitalWrite(green3, HIGH);
-  //   digitalWrite(red3, LOW);
-  // } else {
-  //   digitalWrite(red3, HIGH);
-  //   digitalWrite(green3, LOW);
-  // }
+void taskLed(String led10, String led11, String led20, String led21, String led30, String led31) {
+  if (led10 == "green") {
+    digitalWrite(green10, HIGH);
+    digitalWrite(red10, LOW);
+  } else if ("yellow") {
+    digitalWrite(green10, HIGH);
+    digitalWrite(red10, HIGH);
+  } else if ("red") {
+    digitalWrite(green10, LOW);
+    digitalWrite(red10, HIGH);    
+  } else {
+    digitalWrite(green10, LOW);
+    digitalWrite(red10, LOW);
+  }
+
+  if (led11 == "green") {
+    digitalWrite(green11, HIGH);
+    digitalWrite(red11, LOW);
+  } else if ("yellow") {
+    digitalWrite(green11, HIGH);
+    digitalWrite(red11, HIGH);
+  } else if ("red") {
+    digitalWrite(green11, LOW);
+    digitalWrite(red11, HIGH);
+  } else {
+    digitalWrite(green11, LOW);
+    digitalWrite(red11, LOW);
+  }  
+
+  if (led20 == "green") {
+    digitalWrite(green20, HIGH);
+    digitalWrite(red20, LOW);
+  } else if ("yellow") {
+    digitalWrite(green20, HIGH);
+    digitalWrite(red20, HIGH);
+  } else if ("red") {
+    digitalWrite(green20, LOW);
+    digitalWrite(red20, HIGH);
+  } else {
+    digitalWrite(green20, LOW);
+    digitalWrite(red20, LOW);
+  }  
+
+  if (led21 == "green") {
+    digitalWrite(green21, HIGH);
+    digitalWrite(red21, LOW);
+  } else if ("yellow") {
+    digitalWrite(green21, HIGH);
+    digitalWrite(red21, HIGH);
+  } else if ("red") {
+    digitalWrite(green21, LOW);
+    digitalWrite(red21, HIGH);
+  } else {
+    digitalWrite(green21, LOW);
+    digitalWrite(red21, LOW);
+  }  
+
+  if (led30 == "green") {
+    digitalWrite(green30, HIGH);
+    digitalWrite(red30, LOW);
+  } else if ("yellow") {
+    digitalWrite(green30, HIGH);
+    digitalWrite(red30, HIGH);
+  } else if ("red") {
+    digitalWrite(green30, LOW);
+    digitalWrite(red30, HIGH);
+  } else {
+    digitalWrite(green30, LOW);
+    digitalWrite(red30, LOW);
+  }  
+
+  if (led31 == "green") {
+    digitalWrite(green31, HIGH);
+    digitalWrite(red31, LOW);
+  } else if ("yellow") {
+    digitalWrite(green31, HIGH);
+    digitalWrite(red31, HIGH);
+  } else if ("red") {
+    digitalWrite(green31, LOW);
+    digitalWrite(red31, HIGH);
+  } else {
+    digitalWrite(green31, LOW);
+    digitalWrite(red31, LOW);
+  }  
+}
+
+void checkConnection() {
+      if (reset) {
+      DynamicJsonDocument doc(1024);
+      JsonArray array = doc.to<JsonArray>();
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("connectEsp");
+
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      param1["module"] = "CABLE";
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+      reset = false;
+    }
 }

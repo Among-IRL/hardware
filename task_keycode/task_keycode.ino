@@ -35,6 +35,7 @@ byte colPins[COLS] = {4, 16, 17, 5};
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
 bool taskEnabled = false;
+bool reset = false;
 
 const char* ssid_board = "KEYCODE";
 const char* password_board = "12345678";
@@ -51,7 +52,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             break;
         case sIOtype_CONNECT:
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-
+            reset = true;
             // join default namespace (no auto join in Socket.IO V3)
             socketIO.send(sIOtype_CONNECT, "/");
             break;
@@ -81,7 +82,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskCompletedTaskKeyCode") {
                 taskEnabled = false;
-                digitalWrite(ledValidation, HIGH);
+                initTask();
                 USE_SERIAL.printf("task completed\n");
             }
          } 
@@ -136,6 +137,7 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
+  checkConnection();
   taskKeycode();
 }
 
@@ -155,6 +157,30 @@ void initTask() {
   digitalWrite(ledValidation, HIGH); 
   delay(500);
   digitalWrite(ledValidation, LOW); 
+}
+
+void checkConnection() {
+      if (reset) {
+      DynamicJsonDocument doc(1024);
+      JsonArray array = doc.to<JsonArray>();
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("connectEsp");
+
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      param1["module"] = "KEYCODE";
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+      reset = false;
+    }
 }
 
 void taskKeycode() {
