@@ -31,6 +31,7 @@ const int red31 = 16;
 const int green31 = 17;
 bool taskEnabled = false;
 bool reset = false;
+bool checkCable = false;
 const char* ssid_board = "CABLE";
 const char* password_board = "12345678";
 const char* ssid = "SFR_45EF";
@@ -71,13 +72,22 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if (eventName == "enableTaskCable") {
                 taskEnabled = true;
                 USE_SERIAL.printf("task enabled\n");
+                if (digitalRead(cableIn1) == LOW) {
+                    checkCable = true;
+                } 
+                if (digitalRead(cableIn2) == LOW) {
+                    checkCable = true;
+                }
+                if (digitalRead(cableIn3) == LOW) {
+                    checkCable = true;                  
+                }
             } else if (eventName == "disableTaskCable") {
                 taskEnabled = false;
                 initTask();
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskCompletedCable") {
                 taskEnabled = false;
-                USE_SERIAL.printf("task disabled\n");
+                USE_SERIAL.printf("task complete\n");
             } else if (eventName == "taskValidCable") {
               String led10 = doc[1]["led10"];
               String led11 = doc[1]["led11"];
@@ -229,19 +239,6 @@ void initTask() {
   digitalWrite(green31, HIGH);
   delay(500);
   digitalWrite(red10, LOW);
-  digitalWrite(green10, HIGH);
-  digitalWrite(red20, HIGH);
-  digitalWrite(green20, HIGH);
-  digitalWrite(red30, HIGH);
-  digitalWrite(green30, LOW);
-  digitalWrite(red11, LOW);
-  digitalWrite(green11, HIGH);
-  digitalWrite(red21, HIGH);
-  digitalWrite(green21, HIGH);
-  digitalWrite(red31, HIGH);
-  digitalWrite(green31, LOW);
-  delay(500);
-  digitalWrite(red10, LOW);
   digitalWrite(green10, LOW);
   digitalWrite(red20, LOW);
   digitalWrite(green20, LOW);
@@ -260,25 +257,33 @@ void taskCable() {
     // creat JSON message for Socket.IO (event)
     DynamicJsonDocument doc(1024);
     JsonArray array = doc.to<JsonArray>();
+    if (checkCable == false) {
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("taskCable");
 
-    // add evnet name
-    // Hint: socket.on('event_name', ....
-    array.add("taskCable");
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      
+      if (digitalRead(cableIn1) == LOW) {
+          param1["cable1"] = true;
+          USE_SERIAL.println("Cable 1");
+      }
+      if (digitalRead(cableIn2) == LOW) {
+          param1["cable2"] = true;
+          USE_SERIAL.println("Cable 2");
+      }
+      if (digitalRead(cableIn3) == LOW) {
+          param1["cable3"] = true;
+          USE_SERIAL.println("Cable 3");
+      }      
+    } else {
+            // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("alreadyConnect");
 
-    // add payload (parameters) for the event
-    JsonObject param1 = array.createNestedObject();
-    
-    if (digitalRead(cableIn1) == LOW) {
-        param1["cable1"] = true;
-        USE_SERIAL.println("Cable 1");
-    }
-    if (digitalRead(cableIn2) == LOW) {
-        param1["cable2"] = true;
-        USE_SERIAL.println("Cable 2");
-    }
-    if (digitalRead(cableIn3) == LOW) {
-        param1["cable3"] = true;
-        USE_SERIAL.println("Cable 3");
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
     }
     
     // JSON to String (serializion)

@@ -49,7 +49,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if(id) {
               payload = (uint8_t *)sptr;
             }
-            DynamicJsonDocument doc(1024);           
+            DynamicJsonDocument doc(102400);           
             DeserializationError error = deserializeJson(doc, payload, length);
             if(error) {
                 USE_SERIAL.print(F("deserializeJson() failed: "));
@@ -127,29 +127,7 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
-
-    if (reset) {
-      DynamicJsonDocument doc(1024);
-      JsonArray array = doc.to<JsonArray>();
-      // add evnet name
-      // Hint: socket.on('event_name', ....
-      array.add("connectionDesabotage2");
-
-      // add payload (parameters) for the event
-      JsonObject param1 = array.createNestedObject();
-      param1["isConnect"] = true;
-      // JSON to String (serializion)
-      String output;
-      serializeJson(doc, output);
-
-      // Print JSON for debugging
-      USE_SERIAL.println(output);
-
-      // Send event
-      socketIO.sendEVENT(output);
-      reset = false;
-    }
-
+  checkConnection();
   taskDesabotage();
   delay(500);
 }
@@ -226,4 +204,28 @@ void taskLed(String led) {
     digitalWrite(green, LOW);
     digitalWrite(red, LOW);
   }
+}
+
+void checkConnection() {
+      if (reset) {
+      DynamicJsonDocument doc(1024);
+      JsonArray array = doc.to<JsonArray>();
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("connectEsp");
+
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      param1["module"] = "DESABOTAGE2";
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+      reset = false;
+    }
 }

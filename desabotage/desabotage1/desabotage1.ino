@@ -19,6 +19,7 @@ const int red = 27;
 const int button = 12;
 
 bool taskEnabled = false;
+bool reset = false;
 
 const char* ssid_board = "DESABOTAGE1";
 const char* password_board = "12345678";
@@ -35,7 +36,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             break;
         case sIOtype_CONNECT:
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-
+            reset = true;
             // join default namespace (no auto join in Socket.IO V3)
             socketIO.send(sIOtype_CONNECT, "/");
             break;
@@ -47,7 +48,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if(id) {
               payload = (uint8_t *)sptr;
             }
-            DynamicJsonDocument doc(1024);           
+            DynamicJsonDocument doc(102400);           
             DeserializationError error = deserializeJson(doc, payload, length);
             if(error) {
                 USE_SERIAL.print(F("deserializeJson() failed: "));
@@ -125,6 +126,7 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
+  checkConnection();
   taskDesabotage();
   delay(500);
 }
@@ -202,3 +204,28 @@ void taskLed(String led) {
     digitalWrite(red, LOW);
   }
 }
+
+void checkConnection() {
+      if (reset) {
+      DynamicJsonDocument doc(1024);
+      JsonArray array = doc.to<JsonArray>();
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("connectEsp");
+
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      param1["module"] = "DESABOTAGE1";
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+      reset = false;
+    }
+}
+

@@ -46,7 +46,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if(id) {
               payload = (uint8_t *)sptr;
             }
-            DynamicJsonDocument doc(1024);           
+            DynamicJsonDocument doc(102400);           
             DeserializationError error = deserializeJson(doc, payload, length);
             if(error) {
                 USE_SERIAL.print(F("deserializeJson() failed: "));
@@ -66,7 +66,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             } else if (eventName == "taskCompletedQrCode") {
                 taskEnabled = false;
                 USE_SERIAL.printf("task disabled\n");
-                digitalWrite(led, HIGH);
+                initTask();
             }
          } 
             break;
@@ -137,6 +137,7 @@ void initTask() {
   delay(500);
   digitalWrite(led, HIGH);
   delay(500);
+  digitalWrite(led, LOW);
 }
 
 void checkConnection() {
