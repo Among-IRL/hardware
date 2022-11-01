@@ -22,9 +22,9 @@ bool reset = false;
 
 const char* ssid_board = "CARDSWIPE";
 const char* password_board = "12345678";
-const char* ssid = "SFR_45EF";
-const char* password = "d9byza2yhvc92dfebfi7";
-const char* host = "192.168.1.149";
+const char* ssid = "ROUTER";
+const char* password = "12345678";
+const char* host = "192.168.4.2";
 const int port = 3000;
 const char* path = "/socket.io/?EIO=4";
 
@@ -47,7 +47,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if(id) {
               payload = (uint8_t *)sptr;
             }
-            DynamicJsonDocument doc(2048);           
+            DynamicJsonDocument doc(102400);             
             DeserializationError error = deserializeJson(doc, payload, length);
             if(error) {
                 USE_SERIAL.print(F("deserializeJson() failed: "));
@@ -187,7 +187,7 @@ void taskCardSwip() {
    
     if(detectorVal == HIGH) // Si un signal est détecté, la diode s'allume
     {
-      USE_SERIAL.println("Pas d'obstacle");
+      // USE_SERIAL.println("Pas d'obstacle");
       digitalWrite(led1, LOW);
     }
     else
