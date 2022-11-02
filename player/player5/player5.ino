@@ -29,7 +29,7 @@ String ledPlayer = "green";
 bool playerEnabled = false;
 bool reset = false;
 
-const char* ssid_board = "PLAYER3";
+const char* ssid_board = "PLAYER5";
 const char* password_board = "12345678";
 const char* ssid = "SFR_45EF";
 const char* password = "d9byza2yhvc92dfebfi7";
@@ -229,7 +229,7 @@ void checkConnection() {
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
-    param1["module"] = "PLAYER3";
+    param1["module"] = "PLAYER5";
     // JSON to String (serializion)
     String output;
     serializeJson(doc, output);

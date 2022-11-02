@@ -16,16 +16,17 @@
 WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 
-const int red1 = 12;
+const int red1 = 14;
 const int red2 = 26;
 
-const int green1 = 14;
-const int green2 = 25;
+const int green1 = 12;
+const int green2 = 27;
 
 String deadPlayer = "";
 String deadPlayerReported = "";
 String ledPlayer = "green";
-bool playerEnabled = true;
+
+bool playerEnabled = false;
 bool reset = false;
 
 const char* ssid_board = "PLAYER1";
@@ -83,7 +84,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.println(doc[1].as<String>());
                 USE_SERIAL.println(ledPlayer);
             } else if (eventName == "deadReport") {
-                USE_SERIAL.printf("Death player : \n");
+                USE_SERIAL.printf("Report player : \n");
                 deadPlayerReported = doc[1]["macDeadPlayer"].as<String>();
 
                 if (deadPlayerReported == ssid_board) {
@@ -195,11 +196,18 @@ void playerLed(String led) {
     digitalWrite(green2, LOW);
     digitalWrite(red1, HIGH);
     digitalWrite(red2, HIGH);
+    delay(250);
+    digitalWrite(red1, LOW);
+    digitalWrite(red2, LOW);
+    delay(250);
+    digitalWrite(red1, HIGH);
+    digitalWrite(red2, HIGH);
+    delay(250);
     USE_SERIAL.printf("Player is dead : \n");
   } else if (led == "yellow") {
-    digitalWrite(green1, HIGH);
-    digitalWrite(green2, HIGH);
-    digitalWrite(red2, HIGH);
+    digitalWrite(green1, LOW);
+    digitalWrite(green2, LOW);
+    digitalWrite(red1, HIGH);
     digitalWrite(red2, HIGH);
     USE_SERIAL.printf("Player is ghost \n");
   } else {
