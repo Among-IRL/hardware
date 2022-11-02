@@ -21,7 +21,8 @@ const int led1 = 12;
 const int led2 = 14;
 const int led3 = 27;
 
-bool taskEnabled = true;
+bool taskEnabled = false;
+bool reset = false;
 
 const char* ssid_board = "SOCLE";
 const char* password_board = "12345678";
@@ -38,7 +39,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             break;
         case sIOtype_CONNECT:
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-
+            reset = true;
             // join default namespace (no auto join in Socket.IO V3)
             socketIO.send(sIOtype_CONNECT, "/");
             break;
@@ -50,7 +51,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if(id) {
               payload = (uint8_t *)sptr;
             }
-            DynamicJsonDocument doc(1024);           
+            DynamicJsonDocument doc(102400);         
             DeserializationError error = deserializeJson(doc, payload, length);
             if(error) {
                 USE_SERIAL.print(F("deserializeJson() failed: "));
@@ -68,6 +69,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskCompletedSocle") {
                 taskEnabled = false;
+                initTask();
                 USE_SERIAL.printf("task disabled\n");
             } else if (eventName == "taskLedSocle") {
               String led = doc[1]["led"];
@@ -125,6 +127,7 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
+  checkConnection();
   taskSocle();
   delay(500);
 }
@@ -139,9 +142,30 @@ void setupPin() {
 }
 
 void initTask() {
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, HIGH);
+  delay(500);
   digitalWrite(led1, LOW);
   digitalWrite(led2, LOW);
   digitalWrite(led3, LOW);
+  delay(500);
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, HIGH);
+  delay(500);
+  digitalWrite(led1, LOW);
+  digitalWrite(led2, LOW);
+  digitalWrite(led3, LOW);
+  delay(500);
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, HIGH);
+  delay(500);
+  digitalWrite(led1, LOW);
+  digitalWrite(led2, LOW);
+  digitalWrite(led3, LOW);
+  delay(500);
 }
 
 void taskSocle() {
@@ -158,24 +182,17 @@ void taskSocle() {
     JsonObject param1 = array.createNestedObject();
     
     if (digitalRead(button1) == LOW) {
-        param1["button1"] = true;
-        digitalWrite(led1, HIGH);
-    } else {
-      digitalWrite(led1, LOW);
+        param1["button"] = 1;
+        USE_SERIAL.println("Button1");
     }
     if (digitalRead(button2) == LOW) {
-        param1["button2"] = true;
-        digitalWrite(led2, HIGH);
-    } else {
-        digitalWrite(led2, LOW);
-    }
+        param1["button"] = 2;
+        USE_SERIAL.println("Button2");
+    } 
     if (digitalRead(button3) == LOW) {
-        param1["button3"] = true;
-        digitalWrite(led3, HIGH);
-    } else {
-        digitalWrite(led3, LOW);
+        param1["button"] = 3;
+        USE_SERIAL.println("Button3");
     }
-    
     // JSON to String (serializion)
     String output;
     serializeJson(doc, output);
@@ -206,4 +223,28 @@ void taskLed(String led) {
     digitalWrite(led2, LOW);
     digitalWrite(led3, LOW);
   }
+}
+
+void checkConnection() {
+      if (reset) {
+      DynamicJsonDocument doc(1024);
+      JsonArray array = doc.to<JsonArray>();
+      // add evnet name
+      // Hint: socket.on('event_name', ....
+      array.add("connectEsp");
+
+      // add payload (parameters) for the event
+      JsonObject param1 = array.createNestedObject();
+      param1["module"] = "SOCLE";
+      // JSON to String (serializion)
+      String output;
+      serializeJson(doc, output);
+
+      // Print JSON for debugging
+      USE_SERIAL.println(output);
+
+      // Send event
+      socketIO.sendEVENT(output);
+      reset = false;
+    }
 }
