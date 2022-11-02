@@ -22,8 +22,10 @@ const int red2 = 26;
 const int green1 = 14;
 const int green2 = 25;
 
-String ledPlayer = "";
-bool playerEnabled = false;
+String deadPlayer = "";
+String deadPlayerReported = "";
+String ledPlayer = "green";
+bool playerEnabled = true;
 bool reset = false;
 
 const char* ssid_board = "PLAYER3";
@@ -69,8 +71,28 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
                 playerEnabled = false;
                 initPlayer();
                 USE_SERIAL.printf("player disabled\n");
-            } else if (eventName == "playerLed") {
-                ledPlayer = doc[1]["led"].as<String>();
+            } else if (eventName == "deathPlayer") {
+                USE_SERIAL.printf("Death player : \n");
+                deadPlayer = doc[1]["mac"].as<String>();
+
+                if (deadPlayer == ssid_board) {
+                  ledPlayer = "red";
+                  USE_SERIAL.printf("Player as been killed\n");
+                }
+
+                USE_SERIAL.println(doc[1].as<String>());
+                USE_SERIAL.println(ledPlayer);
+            } else if (eventName == "deadReport") {
+                USE_SERIAL.printf("Death player : \n");
+                deadPlayerReported = doc[1]["macDeadPlayer"].as<String>();
+
+                if (deadPlayerReported == ssid_board) {
+                  ledPlayer = "yellow";
+                  USE_SERIAL.printf("Player is now a ghost\n");
+                }
+
+                USE_SERIAL.println(doc[1].as<String>());
+                USE_SERIAL.println(ledPlayer);
             }
          } 
             break;
@@ -125,7 +147,9 @@ unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
   checkConnection();
-  playerLed(ledPlayer);
+  if(playerEnabled) {
+    playerLed(ledPlayer);
+  }
   delay(500);
 }
 
@@ -165,21 +189,25 @@ void playerLed(String led) {
     digitalWrite(green2, HIGH);
     digitalWrite(red1, LOW);
     digitalWrite(red2, LOW);
+    USE_SERIAL.printf("Player is alive \n");
   } else if (led == "red") {
     digitalWrite(green1, LOW);
     digitalWrite(green2, LOW);
     digitalWrite(red1, HIGH);
     digitalWrite(red2, HIGH);
+    USE_SERIAL.printf("Player is dead : \n");
   } else if (led == "yellow") {
     digitalWrite(green1, HIGH);
     digitalWrite(green2, HIGH);
     digitalWrite(red2, HIGH);
     digitalWrite(red2, HIGH);
+    USE_SERIAL.printf("Player is ghost \n");
   } else {
     digitalWrite(green1, LOW);
     digitalWrite(green2, LOW);
     digitalWrite(red1, LOW);
     digitalWrite(red2, LOW);
+    USE_SERIAL.printf("Player is disabled");
   }
 }
 
