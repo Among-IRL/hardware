@@ -23,8 +23,10 @@ const int led2 = 14;
 const int led3 = 27;
 const int led4 = 26;
 String ledRobot = "";
+
 bool taskEnabled = false;
 bool reset = false;
+
 bool send1 = true;
 bool send2 = true;
 bool send3 = true;
