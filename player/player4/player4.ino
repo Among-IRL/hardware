@@ -24,12 +24,12 @@ const int green2 = 27;
 
 String deadPlayer = "";
 String deadPlayerReported = "";
-String ledPlayer = "green";
+String ledPlayer = "";
 
 bool playerEnabled = false;
 bool reset = false;
 
-const char* ssid_board = "PLAYER4";
+const char* ssid_board = "PLAYER3";
 const char* password_board = "12345678";
 const char* ssid = "SFR_45EF";
 const char* password = "d9byza2yhvc92dfebfi7";
@@ -67,6 +67,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             String eventName = doc[0];
              if (eventName == "enablePlayer") {
                 playerEnabled = true;
+                ledPlayer = "green";
                 USE_SERIAL.printf("player enabled\n");
             } else if (eventName == "disablePlayer") {
                 playerEnabled = false;
@@ -182,6 +183,10 @@ void initPlayer() {
   digitalWrite(red1, LOW);
   digitalWrite(red2, LOW);
   delay(500);
+  digitalWrite(green1, LOW);
+  digitalWrite(green2, LOW);
+  digitalWrite(red1, LOW);
+  digitalWrite(red2, LOW);
 }
 
 void playerLed(String led) {
@@ -229,7 +234,7 @@ void checkConnection() {
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
-    param1["module"] = "PLAYER4";
+    param1["module"] = "PLAYER3";
     // JSON to String (serializion)
     String output;
     serializeJson(doc, output);

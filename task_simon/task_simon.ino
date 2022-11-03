@@ -31,9 +31,10 @@ bool send3 = true;
 bool send4 = true;
 const char* ssid_board = "SIMON";
 const char* password_board = "12345678";
-const char* ssid = "ROUTER";
-const char* password = "12345678";
-const char* host = "192.168.4.2";
+const char* ssid = "SFR_45EF";
+const char* password = "d9byza2yhvc92dfebfi7";
+const char* host = "192.168.1.149";
+
 const int port = 3000;
 const char* path = "/socket.io/?EIO=4";
 

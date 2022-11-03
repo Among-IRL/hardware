@@ -24,7 +24,7 @@ const int green2 = 27;
 
 String deadPlayer = "";
 String deadPlayerReported = "";
-String ledPlayer = "green";
+String ledPlayer = "";
 
 bool playerEnabled = false;
 bool reset = false;
@@ -67,6 +67,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             String eventName = doc[0];
              if (eventName == "enablePlayer") {
                 playerEnabled = true;
+                ledPlayer = "green";
                 USE_SERIAL.printf("player enabled\n");
             } else if (eventName == "disablePlayer") {
                 playerEnabled = false;
@@ -182,6 +183,10 @@ void initPlayer() {
   digitalWrite(red1, LOW);
   digitalWrite(red2, LOW);
   delay(500);
+  digitalWrite(green1, LOW);
+  digitalWrite(green2, LOW);
+  digitalWrite(red1, LOW);
+  digitalWrite(red2, LOW);
 }
 
 void playerLed(String led) {
